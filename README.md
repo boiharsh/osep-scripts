@@ -18,9 +18,20 @@ Example usage: `python3 xor.py -t cs -i rev64.cs -k z --raw | clip`
 The above command will xor a csharp style shellcode with the key "z" and output nothing except the formatted xor'd array which I passed to clip (alias around xlip)
 
 ### nxc-sweep.sh:
-Quick script which accepts a username, password/ntlm hash and runs nxc against a CIDR range for the protocols smb, mssql, rdp, and winrm. It also tries perform local-auth for each of the services so you don't miss those edge cases and keep wondering why your creds don't work.
-The script also supports proxychains with the argument `-P`.
+Quick script which accepts a username and one of: password (`-p`), NTLM hash (`-H`), or Kerberos auth (`-k`), then runs nxc against a /24 derived from the provided IP across smb, mssql, rdp, winrm, ftp, and ssh. For password and hash auth it also tries `--local-auth` for each protocol so you don't miss edge cases, and optionally prepends the domain (`-d`) to the username. Services can be skipped with `-x` (comma-separated list), and proxychains is toggled with `-P`.
 
-Example usage: `./script.sh -i 172.16.197.100 -u test -p test`
+Example usage: `./nxc-sweep.sh -i 172.16.197.100 -u test -p test -d mydomain`
 
-Above command will spray the entire 172.16.197.100/24 range with the creds test/test.
+Above command will run three scans:
+* spray the entire 172.16.197.100/24 range with the creds test/test across all supported protocols.
+* spray the entire range with creds and `--local-auth` flag
+* spray the entire range with creds but the dc is fixed to the domain supplied by the user.
+
+### scan.sh:
+While rustscan can be used to scan the IP ranges, I find it to not be all too accurate all too often so wrote this script. It is very flexible in how it takes the IPs to be scanned.
+
+Targets are provided via `-i` (inline) or `-f` (file with one IP per line). The inline format supports a single IP, comma-separated last octets in the same /24, or octet ranges separated by `-`. For each target it runs a full port scan first (`-p-` by default, or `--top-ports N` if `-p N` is given), then a service/version scan (`-sVC`) against only the open ports found. Output files are written to the directory specified by `-o`.
+
+Example usage: `./scan.sh -i 192.168.1.1,5-10,15 -p 10000 -o nmap/`
+
+The above command will scan 192.168.1.1, 192.168.1.5 through 192.168.1.10, and 192.168.1.15 using `--top-ports 10000`, saving nmap output files into the `nmap/` directory.
