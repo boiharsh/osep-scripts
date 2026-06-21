@@ -1,0 +1,14 @@
+Z:\osep\sliver\hollow\hollow\bin\x64\Release\hollow.exe.config
+Z:\osep\sliver\hollow\hollow\bin\x64\Release\hollow.exe
+Z:\osep\sliver\hollow\hollow\bin\x64\Release\hollow.pdb
+Z:\osep\sliver\hollow\hollow\obj\x64\Release\hollow.csproj.AssemblyReference.cache
+Z:\osep\sliver\hollow\hollow\obj\x64\Release\hollow.csproj.CoreCompileInputs.cache
+Z:\osep\sliver\hollow\hollow\obj\x64\Release\hollow.exe
+Z:\osep\sliver\hollow\hollow\obj\x64\Release\hollow.pdb
+Z:\sliver\hollow\hollow\bin\x64\Release\hollow.exe.config
+Z:\sliver\hollow\hollow\bin\x64\Release\hollow.exe
+Z:\sliver\hollow\hollow\bin\x64\Release\hollow.pdb
+Z:\sliver\hollow\hollow\obj\x64\Release\hollow.csproj.AssemblyReference.cache
+Z:\sliver\hollow\hollow\obj\x64\Release\hollow.csproj.CoreCompileInputs.cache
+Z:\sliver\hollow\hollow\obj\x64\Release\hollow.exe
+Z:\sliver\hollow\hollow\obj\x64\Release\hollow.pdb

