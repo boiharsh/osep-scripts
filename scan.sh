@@ -14,12 +14,13 @@ FILE=""
 OUTDIR="."
 TOPPORTS=""
 
-while getopts "i:f:o:p:" flag; do
+while getopts "i:f:o:p:h" flag; do
     case "${flag}" in
         i) HOST=${OPTARG} ;;
         f) FILE=${OPTARG} ;;
         o) OUTDIR=${OPTARG} ;;
         p) TOPPORTS=${OPTARG} ;;
+        h) usage ;;
         *) usage ;;
     esac
 done

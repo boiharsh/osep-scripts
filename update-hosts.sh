@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 HOSTS_FILE="/etc/hosts"
-# TARGET_IP="192.168.120.1-254"
 
 while getopts "i:h" opt; do
   case $opt in
@@ -21,7 +20,7 @@ if [ -z "$TARGET_IP" ]; then
     exit 1
 fi
 
-TARGET_IP="$(echo "$TARGET_IP" | cut -d'.' -f1-3).1-254"
+TARGET_IP="${TARGET_IP}/24"
 
 function update_hosts() {
     IP=$1
@@ -51,11 +50,20 @@ function update_hosts() {
     return 0
 }
 
+AWK_NAME_DOMAIN='{
+    name=""; domain="";
+    for (i=1; i<=NF; i++) {
+        if ($i ~ /^\(name:/) { split($i,n,"[:)]"); name=tolower(n[2]) }
+        else if ($i ~ /^\(domain:/) { split($i,d,"[:)]"); domain=d[2] }
+    }
+    if (name != "" && domain != "") print $2" "name"."domain
+}'
+
 echo "[i] Gathering hosts using smb."
-nxc smb "$TARGET_IP" | grep -i smb | awk '{split($14,n,"[:)]"); split($15,d,"[:)]"); print $2" "tolower(n[2])"."d[2]}' > /tmp/output.txt
+nxc smb "$TARGET_IP" | grep -i smb | awk "$AWK_NAME_DOMAIN" > /tmp/output.txt
 echo "[+] Done"
 echo "[i] Gathering hosts using winrm."
-nxc winrm "$TARGET_IP" | grep -i winrm | awk '{split($13,n,"[:)]"); split($14,d,"[:)]"); print $2" "tolower(n[2])"."d[2]}' >> /tmp/output.txt
+nxc winrm "$TARGET_IP" | grep -i winrm | awk "$AWK_NAME_DOMAIN" >> /tmp/output.txt
 echo "[+] Done"
 
 echo "[i] Writing hosts to /etc/hosts file."
