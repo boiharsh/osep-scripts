@@ -38,6 +38,7 @@ scan_host() {
     local HOST=$1
     PREFIX=$(echo $HOST | cut -d"." -f1-3)
     LAST_PART=$(echo $HOST | cut -d"." -f4)
+    HOSTNAME=$(host $HOST | rev | cut -d' ' -f1 | rev)
 
     OCTETS=""
     for PART in $(echo $LAST_PART | tr ',' ' '); do
@@ -52,12 +53,12 @@ scan_host() {
         TARGET="${PREFIX}.${OCTET}"
         echo "[*] Scanning target: $TARGET"
         PORT_FLAG=$([[ -n "$TOPPORTS" ]] && echo "--top-ports $TOPPORTS" || echo "-p-")
-        echo "[*] nmap -Pn --min-rate=300 ${PORT_FLAG} -v --unprivileged -oN ${OUTDIR}/nmap_allporttcp_${TARGET} $TARGET"
-        nmap -Pn --min-rate=300 ${PORT_FLAG} -v --unprivileged -oN "${OUTDIR}/nmap_allporttcp_${TARGET}" $TARGET
-        PORTS=$(cat "${OUTDIR}/nmap_allporttcp_${TARGET}" | grep -E ^[0-9] | cut -d'/' -f1 | tr '\n' ',' | sed 's/,$//')
+        echo "[*] nmap -Pn --min-rate=300 ${PORT_FLAG} -v --unprivileged -oN ${OUTDIR}/allporttcp_${TARGET}_${HOSTNAME} $TARGET"
+        nmap -Pn --min-rate=300 ${PORT_FLAG} -v --unprivileged -oN "${OUTDIR}/allporttcp_${TARGET}_${HOSTNAME}" $TARGET
+        PORTS=$(cat "${OUTDIR}/allporttcp_${TARGET}_${HOSTNAME}" | grep -E ^[0-9] | cut -d'/' -f1 | tr '\n' ',' | sed 's/,$//')
         echo "[i] ------------- done -------------"
-        echo "[*] nmap -Pn -sVC -p${PORTS} -v --unprivileged -oN ${OUTDIR}/nmap_allporttcpver_${TARGET} $TARGET"
-        nmap -Pn -sVC -p${PORTS} -v --unprivileged -oN "${OUTDIR}/nmap_allporttcpver_${TARGET}" $TARGET
+        echo "[*] nmap -Pn -sVC -p${PORTS} -v --unprivileged -oN ${OUTDIR}/allporttcpver_${TARGET}_${HOSTNAME} $TARGET"
+        nmap -Pn -sVC -p${PORTS} -v --unprivileged -oN "${OUTDIR}/allporttcpver_${TARGET}_${HOSTNAME}" $TARGET
         echo "[i] ------------- done -------------"
     done
 }
